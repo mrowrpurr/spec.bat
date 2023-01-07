@@ -1,11 +1,16 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set "RUN_SPECS=for %%x in (%%*) do call %%~x & goto :eof"
+set assert=if not
+set "is_true=@(call)"
 
-if not "%CURRENTLY_RUNNING_SPEC_FILE%" == "" goto :eof
+set EXIT_CODE=
 
 set SPEC_BAT_VERSION=0.1.0
+
+set "END=call echo EXIT CODE is !EXIT_CODE! & call exit /b !EXIT_CODE! & goto :eof"
+
+if not "%CURRENTLY_RUNNING_SPEC_FILE%" == "" goto :eof
 
 if "%~1" == "" call :usage
 if "%~2" == "run" (
@@ -26,12 +31,12 @@ goto :eof
     echo ^RUN %~1
     set CURRENTLY_RUNNING_SPEC_FILE="%~1"
     for /f "usebackq delims=" %%i in (`
-        powershell -c "Select-String -Pattern ^: -Path '%~1' | %% { $_.Line }"
+        powershell -c "Select-String -Pattern ^:test -Path '%~1' | %% { $_.Line }"
     `) do (
+        @REM set EXIT_CODE=0
         echo.
-        echo.
-        echo ^RUNNING SPEC FUNCTION "%~1" %%i
-        cmd /c "%~1" %%i
+        echo ^call "%~1" :setup %%i :teardown
+        call "%~1" :setup %%i :teardown
         if %errorlevel% == 0 (
             echo ^[PASS] %%i
         ) else (
