@@ -1,8 +1,7 @@
 @echo off
 
 call Spec.bat %0
-for %%x in (%*) do call %%~x 
-goto :eof
+%RUN_SPECS%
 
 :setup
     echo "THIS IS SETUP"
@@ -18,6 +17,7 @@ goto :eof
     goto :eof
 
 :test_should_fail
+    @REM this command does not exist
     @REM assert 69 == 420
     echo test should fail
     goto :eof
