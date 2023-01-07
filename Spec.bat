@@ -1,6 +1,8 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+set "RUN_SPECS=for %%x in (%%*) do call %%~x & goto :eof"
+
 if not "%CURRENTLY_RUNNING_SPEC_FILE%" == "" goto :eof
 
 set SPEC_BAT_VERSION=0.1.0
@@ -26,7 +28,15 @@ goto :eof
     for /f "usebackq delims=" %%i in (`
         powershell -c "Select-String -Pattern ^: -Path '%~1' | %% { $_.Line }"
     `) do (
-        call "%~1" %%i
+        echo.
+        echo.
+        echo ^RUNNING SPEC FUNCTION "%~1" %%i
+        cmd /c "%~1" %%i
+        if %errorlevel% == 0 (
+            echo ^[PASS] %%i
+        ) else (
+            echo ^[FAIL] %%i
+        )
     )
     set CURRENTLY_RUNNING_SPEC_FILE=
     goto :eof
