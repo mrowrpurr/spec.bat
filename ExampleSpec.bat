@@ -1,5 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
+set VERBOSE=true
 
 call Spec.bat %0
 for %%x in (%*) do call %%~x
@@ -19,6 +20,6 @@ goto :eof
 
 :test_should_fail
     echo before fail
-    %assert% 69 == 420 %is_true%
+    %assert_eq% 69 420
     echo after fail
     goto :eof

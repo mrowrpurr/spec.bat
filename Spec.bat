@@ -3,6 +3,23 @@ setlocal EnableDelayedExpansion
 
 set SPEC_BAT_VERSION=0.1.0
 
+set fail=call %0 fail
+if "%~1" == "fail" (
+    echo.>%TEMP%\Spec_bat_test_failed
+    set "_args=%*"
+    set "_args=!_args:*%1 =!"
+    echo ^[Failure] !_args!
+    goto :eof
+)
+
+set assert_eq=call %0 assert_eq
+if "%~1" == "assert_eq" (
+    if not "%~2" == "%~3" (
+        %fail% expected "%~2" to equal "%~3"
+    )
+    goto :eof
+)
+
 set assert=if not
 set "is_true=( echo.>%TEMP%\Spec_bat_test_failed && goto :eof )"
 
@@ -38,6 +55,9 @@ goto :eof
             echo ^!SPEC_OUTPUT!
         ) else (
             echo ^[PASS] %%i
+            @REM if "%VERBOSE%" == "true" (
+                echo ^!SPEC_OUTPUT!
+            @REM )
         )
     )
     set CURRENTLY_RUNNING_SPEC_FILE=
