@@ -3,26 +3,22 @@ setlocal EnableDelayedExpansion
 
 call Spec.bat %0
 for %%x in (%*) do call %%~x
+goto :eof
 
 :setup
-    echo "------ THIS IS SETUP"
+    echo ^hi from setup
     goto :eof
 
 :teardown
-    echo "-------THIS IS TEARDOWN"
+    echo ^hi from teardown
     goto :eof
 
 :test_should_pass
-    echo HI FROM TEST SHOLD PASS
-    @REM assert 69 == 69
-    echo -------- test should pass
+    %assert% 69 == 69 %is_true%
     goto :eof
 
 :test_should_fail
-    echo HI FROM TEST SHOULD FAIL
-    @REM %assert% 69 == 69 %is_true%
-    @REM %assert% "foo" == "foo" %is_true%
-    @REM %assert% "bar" == "foo" %is_true%
+    echo before fail
     %assert% 69 == 420 %is_true%
-    echo --------- test should fail
+    echo after fail
     goto :eof

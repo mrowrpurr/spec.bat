@@ -4,16 +4,11 @@ setlocal EnableDelayedExpansion
 set SPEC_BAT_VERSION=0.1.0
 
 set assert=if not
-set "is_true=( echo failed >%TEMP%\Spec.bat_test_failed )"
+set "is_true=( echo.>%TEMP%\Spec_bat_test_failed && goto :eof )"
 
 if not "%CURRENTLY_RUNNING_SPEC_FILE%" == "" goto :eof
 
 if "%~1" == "" call :usage
-if "%~2" == "run" (
-    echo ^RUN %3
-    goto %3
-    goto :eof
-)
 
 :process_arguments
     if not "%~1" == "" call :run_spec "%~1"
@@ -24,32 +19,24 @@ if "%~2" == "run" (
 goto :eof
 
 :run_spec
-    echo ^RUN %~1
+(set \n=^
+%=DO NOT REMOVE THIS LINE - This creates a variable for using newlines in PowerShell commands=%
+)
     set CURRENTLY_RUNNING_SPEC_FILE="%~1"
     for /f "usebackq delims=" %%i in (`
         powershell -c "Select-String -Pattern ^:test -Path '%~1' | %% { $_.Line }"
     `) do (
-        echo CALL RESET
         call :reset_spec
-        echo RUNNING THE THING
-        echo Before running, though...
-        if exist "%TEMP%\Spec.bat_test_failed" (
-            echo "BEFORE IT IS THERE - SO FAIL"
-        ) else (
-            echo "BEFORE Not there, we are good"
-        )
-        echo ^RUNNING TEST: %%i
+        set SPEC_OUTPUT=
         for /f "usebackq delims=" %%x in (`
             "%~1" :setup %%i :teardown
         `) do (
-            echo RAN THE THING
-            echo ^OUTPUT [%%x]
+            set SPEC_OUTPUT=!SPEC_OUTPUT!^> %%x!\n!
         )
-        if exist "%TEMP%\Spec.bat_test_failed" (
-            echo "IT IS THERE - SO FAIL"
+        if exist "%TEMP%\Spec_bat_test_failed" (
             echo ^[FAIL] %%i
+            echo ^!SPEC_OUTPUT!
         ) else (
-            echo "Not there, we are good"
             echo ^[PASS] %%i
         )
     )
@@ -57,9 +44,7 @@ goto :eof
     goto :eof
 
 :reset_spec
-    if exist "%TEMP%\Spec.bat_test_failed" del "%TEMP%\Spec.bat_test_failed"
-    @REM pause
-    if exist "%TEMP%\Spec.bat_test_failed" echo IT IS STILL THERE
+    if exist "%TEMP%\Spec_bat_test_failed" del "%TEMP%\Spec_bat_test_failed" >nul
     goto :eof
 
 :usage
