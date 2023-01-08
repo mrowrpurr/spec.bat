@@ -1,6 +1,4 @@
 @echo off
-setlocal EnableDelayedExpansion
-set VERBOSE=true
 
 call Spec.bat %0
 for %%x in (%*) do call %%~x
