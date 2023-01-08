@@ -1,14 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-set assert=if not
-set "is_true=@(call)"
-
-set EXIT_CODE=
-
 set SPEC_BAT_VERSION=0.1.0
 
-set "END=call echo EXIT CODE is !EXIT_CODE! & call exit /b !EXIT_CODE! & goto :eof"
+set assert=if not
+set "is_true=( echo failed >%TEMP%\Spec.bat_test_failed )"
 
 if not "%CURRENTLY_RUNNING_SPEC_FILE%" == "" goto :eof
 
@@ -33,17 +29,37 @@ goto :eof
     for /f "usebackq delims=" %%i in (`
         powershell -c "Select-String -Pattern ^:test -Path '%~1' | %% { $_.Line }"
     `) do (
-        @REM set EXIT_CODE=0
-        echo.
-        echo ^call "%~1" :setup %%i :teardown
-        call "%~1" :setup %%i :teardown
-        if %errorlevel% == 0 (
-            echo ^[PASS] %%i
+        echo CALL RESET
+        call :reset_spec
+        echo RUNNING THE THING
+        echo Before running, though...
+        if exist "%TEMP%\Spec.bat_test_failed" (
+            echo "BEFORE IT IS THERE - SO FAIL"
         ) else (
+            echo "BEFORE Not there, we are good"
+        )
+        echo ^RUNNING TEST: %%i
+        for /f "usebackq delims=" %%x in (`
+            "%~1" :setup %%i :teardown
+        `) do (
+            echo RAN THE THING
+            echo ^OUTPUT [%%x]
+        )
+        if exist "%TEMP%\Spec.bat_test_failed" (
+            echo "IT IS THERE - SO FAIL"
             echo ^[FAIL] %%i
+        ) else (
+            echo "Not there, we are good"
+            echo ^[PASS] %%i
         )
     )
     set CURRENTLY_RUNNING_SPEC_FILE=
+    goto :eof
+
+:reset_spec
+    if exist "%TEMP%\Spec.bat_test_failed" del "%TEMP%\Spec.bat_test_failed"
+    @REM pause
+    if exist "%TEMP%\Spec.bat_test_failed" echo IT IS STILL THERE
     goto :eof
 
 :usage
